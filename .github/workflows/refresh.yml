@@ -1,0 +1,66 @@
+name: refresh
+
+# Thursdays: a new seeded cohort for the ISO week, every stage, feeds extended
+# with this week's point, page deployed, lake shipped to ADLS Gen2 when the
+# secrets exist. GitHub's cron is late by design; nothing here depends on when.
+on:
+  schedule:
+    - cron: "43 9 * * 4"
+  workflow_dispatch:
+    inputs:
+      size:
+        description: living patients to generate
+        default: "400"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CARELAKE_SCRUB_SECRET: ${{ secrets.CARELAKE_SCRUB_SECRET }}
+      CARELAKE_FEED_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+      CARELAKE_SINK: ${{ secrets.CARELAKE_ADLS_ACCOUNT != '' && 'adls' || 'files' }}
+      CARELAKE_ADLS_ACCOUNT: ${{ secrets.CARELAKE_ADLS_ACCOUNT }}
+      CARELAKE_ADLS_KEY: ${{ secrets.CARELAKE_ADLS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse the laptop default secret
+        run: test -n "$CARELAKE_SCRUB_SECRET" || { echo "set the CARELAKE_SCRUB_SECRET repository secret"; exit 1; }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: pip install -e .
+      - uses: actions/cache@v4
+        with:
+          path: .cache/synthea-with-dependencies.jar
+          key: synthea-v4.0.0-ed43c20a
+      - name: This week's cohort through every stage
+        run: python -m carelake all --weekly --size "${{ inputs.size || '400' }}" --only
+      - run: python tools/verify_feeds.py web/feeds/status.json web/feeds/history.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

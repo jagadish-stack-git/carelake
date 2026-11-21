@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  # curated: scrubbed parquet, one file per cohort per table. dbt never sees raw rows.
+  - name: curated
+    meta:
+      external_location: "read_parquet('{{ env_var('CARELAKE_CURATED') }}/{name}/*.parquet', union_by_name = true)"
+    tables:
+      - name: patients
+        columns:
+          - name: pid
+            tests: [not_null, unique]
+      - name: encounters
+      - name: conditions
+      - name: observations
+      - name: prescriptions
+      - name: procedures
+      - name: immunizations
+      - name: claims
+      - name: tally
+        meta:
+          external_location: "read_parquet('{{ env_var('CARELAKE_CURATED') }}/_tally/*.parquet', union_by_name = true)"
+
+  # the only thing read from raw: what was rejected and why, without the resource payload
+  - name: raw
+    tables:
+      - name: rejects
+        meta:
+          external_location: "(select table_name, schema_version, resource_type, cohort, problems, landed_at from read_parquet('{{ env_var('CARELAKE_RAW') }}/_rejects/*.parquet', union_by_name = true))"

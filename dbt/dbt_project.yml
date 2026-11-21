@@ -1,0 +1,28 @@
+name: carelake
+version: "1.0.0"
+config-version: 2
+profile: carelake
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  carelake:
+    core:
+      +schema: core
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  carelake:
+    +schema: lookup
+    chronic_groups:
+      +column_types: {code: varchar, bucket: varchar, label: varchar}
+    payer_classes:
+      +column_types: {payer: varchar, payer_class: varchar}

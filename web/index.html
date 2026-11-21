@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>carelake</title>
+<meta name="description" content="A FHIR R4 lakehouse on synthetic patients, scrubbed to HIPAA Safe Harbor before the curated layer, modelled as a Kimball star on DuckDB. Live numbers from the lake's own status feed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23071614'/%3E%3Cpath d='M8 20c3-6 5-6 8 0s5 6 8 0' fill='none' stroke='%235eead4' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0e2824"/><path d="M8 20c3-6 5-6 8 0s5 6 8 0" fill="none" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round"/></svg>carelake</a>
+      <div class="links"><a href="#question">The question</a><a href="#scrub">Scrubbing</a><a href="#lake">The lake</a><a href="https://github.com/jagadish-stack-git/carelake">Source</a></div>
+    </nav>
+    <h1>A FHIR lakehouse that forgets who you are before it remembers anything else.</h1>
+    <p class="lede">HL7 FHIR R4 bundles for <b>synthetic</b> patients, checked against JSON Schema at the door, scrubbed to HIPAA Safe Harbor before the curated layer exists, modelled as a Kimball star on DuckDB, shipped to Azure Data Lake Storage. Every number below is read from <a href="feeds/status.json">status.json</a>, written by the pipeline itself.</p>
+    <p class="fresh" id="fresh"><span class="dot"></span><span id="fresh-text">reading the feed…</span></p>
+    <div class="tiles" id="tiles">
+      <div class="tile"><div class="k">patients</div><div class="v" id="n-patients">–</div><div class="d">all synthetic</div></div>
+      <div class="tile"><div class="k">encounters</div><div class="v" id="n-encounters">–</div><div class="d">visits of every setting</div></div>
+      <div class="tile"><div class="k">results</div><div class="v" id="n-results">–</div><div class="d">labs and vitals</div></div>
+      <div class="tile"><div class="k">diagnoses</div><div class="v" id="n-diagnoses">–</div><div class="d">SNOMED coded</div></div>
+      <div class="tile"><div class="k">rejected at the door</div><div class="v" id="n-rejects">–</div><div class="d">kept, with reasons</div></div>
+      <div class="tile"><div class="k">dbt tests</div><div class="v" id="n-tests">–</div><div class="d">on every build</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner">Nobody here exists. Patients come from <a href="https://github.com/synthetichealth/synthea">Synthea</a> with a fixed seed. The scrubbing is real and tested; it is demonstrated on records that were never anyone's, which is the only way this can be public. This is not a compliance claim.</div>
+
+  <section id="question">
+    <h2>Which chronic conditions travel together, and where are the diabetes care gaps?</h2>
+    <p class="sub">Co-occurrence of chronic buckets with lift against independence (1.0 means unrelated), then two care-gap measures after a first type 2 diabetes diagnosis.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Chronic conditions that share patients</h3>
+        <div class="scroll"><table id="pairs"><thead><tr><th>Pair</th><th class="r">Patients</th><th class="r hide-sm">Share</th><th>Lift</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>After a type 2 diabetes diagnosis</h3>
+        <div class="gauges">
+          <div class="gauge"><span class="pct" id="g-statin">–</span><span class="l">statin ordered within 365 days</span><span class="den" id="g-statin-den">ages 40 to 75 at diagnosis</span></div>
+          <div class="gauge"><span class="pct" id="g-a1c">–</span><span class="l">HbA1c resulted within 90 days</span><span class="den" id="g-a1c-den">all diabetics</span></div>
+        </div>
+        <div class="scroll"><table id="gaps-payer"><thead><tr><th>Payer class</th><th class="r">Diabetics</th><th class="r">Statin</th><th class="r">HbA1c</th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="gaps-age"><thead><tr><th>Age bracket</th><th class="r">Diabetics</th><th class="r">Statin</th><th class="r">HbA1c</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrub">
+    <h2>What the scrubber did</h2>
+    <p class="sub">Per curated table, summed across cohorts. Columns in the dropped list do not exist in curated; they are not null, they are gone.</p>
+    <div class="card">
+      <div class="scroll"><table id="ledger"><thead><tr><th>Table</th><th class="r">Rows</th><th class="r">Ids hashed</th><th class="r">Dates offset</th><th class="r hide-sm">Redactions</th><th>Dropped columns</th></tr></thead><tbody></tbody></table></div>
+      <p class="note after" id="risk"></p>
+    </div>
+  </section>
+
+  <section id="lake">
+    <h2>The lake, week by week</h2>
+    <p class="sub">Each scheduled run generates a new seeded cohort and appends a point to <a href="feeds/history.json">history.json</a>.</p>
+    <div class="grid2">
+      <div class="card chart"><h3>Patients per weekly cohort</h3><svg id="spark" viewBox="0 0 560 170" preserveAspectRatio="none" role="img" aria-label="patients per week"></svg><p class="note after" id="spark-note"></p></div>
+      <div class="card">
+        <h3>Rejected at the door</h3>
+        <div class="scroll"><table id="rejects"><thead><tr><th>Table</th><th>Problem</th><th class="r">Rows</th></tr></thead><tbody></tbody></table></div>
+        <h3 style="margin-top:18px">Read but not modelled</h3>
+        <div class="scroll"><table id="notread"><thead><tr><th>FHIR resource type</th><th class="r">Resources</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>How it runs</h2>
+    <div class="flow">
+      <div class="step"><b>Synthea</b><span>seeded cohort, FHIR R4 bundles</span></div>
+      <div class="step"><b>raw</b><span>JSON Schema at the door; rejects kept with reasons</span></div>
+      <div class="step"><b>curated</b><span>18 Safe Harbor classes scrubbed, each tested</span></div>
+      <div class="step"><b>serving</b><span>dbt on DuckDB: Kimball dims, facts, marts</span></div>
+      <div class="step"><b>feeds</b><span>status.json, history.json, this page; ADLS Gen2 when enabled</span></div>
+    </div>
+  </section>
+
+  <footer>Source: <a href="https://github.com/jagadish-stack-git/carelake">github.com/jagadish-stack-git/carelake</a> · more of my work: <a href="https://jagadish-butukuri.vercel.app">jagadish-butukuri.vercel.app</a></footer>
+</main>
+<script src="page.js"></script>
+</body>
+</html>

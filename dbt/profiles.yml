@@ -1,0 +1,7 @@
+carelake:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('CARELAKE_DUCKDB', '../data/carelake.duckdb') }}"
+      threads: 4

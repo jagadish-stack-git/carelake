@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: patients_v
+    columns:
+      - name: pid
+        tests: [not_null, unique, digest_shape]
+      - name: age_bracket
+        tests:
+          - not_null
+          - accepted_values: {arguments: {values: ["under 18", "18 to 39", "40 to 64", "65 to 89", "90 and over"]}}
+      - name: zip3
+        tests: [three_digit_zip]
+  - name: encounters_v
+    columns:
+      - name: eid
+        tests: [not_null, unique, digest_shape]
+      - name: pid
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('patients_v'), field: pid}}
+      - name: setting
+        tests:
+          - accepted_values: {arguments: {values: [AMB, EMER, IMP, ACUTE, NONAC, OBSENC, PRENC, SS, VR, HH]}}
+  - name: conditions_v
+    columns:
+      - name: cid
+        tests: [not_null, unique]
+      - name: pid
+        tests:
+          - relationships: {arguments: {to: ref('patients_v'), field: pid}}
+  - name: observations_v
+    columns:
+      - name: oid
+        tests: [not_null, unique, digest_shape]
+  - name: prescriptions_v
+    columns:
+      - name: rxid
+        tests: [not_null, unique]
+  - name: procedures_v
+    columns:
+      - name: prid
+        tests: [not_null, unique]
+  - name: immunizations_v
+    columns:
+      - name: imid
+        tests: [not_null, unique]
+  - name: claims_v
+    columns:
+      - name: clid
+        tests: [not_null, unique]
+      - name: payer
+        tests: [not_null]
+  - name: cohorts_v
+    columns:
+      - name: cohort
+        tests: [not_null, unique]

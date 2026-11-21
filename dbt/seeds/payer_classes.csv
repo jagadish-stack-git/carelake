@@ -1,0 +1,5 @@
+payer,payer_class
+NO_INSURANCE,uninsured
+Medicare,government
+Medicaid,government
+Dual Eligible,government

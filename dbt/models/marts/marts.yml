@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: patient_dim
+    description: Type 2 patient dimension; current_row marks the open version.
+    columns:
+      - name: patient_sk
+        tests: [not_null, unique]
+      - name: pid
+        tests: [not_null, digest_shape]
+      - name: zip3
+        tests: [three_digit_zip]
+  - name: calendar_dim
+    columns:
+      - name: day_key
+        tests: [not_null, unique]
+  - name: condition_dim
+    columns:
+      - name: condition_sk
+        tests: [not_null, unique]
+  - name: drug_dim
+    columns:
+      - name: drug_sk
+        tests: [not_null, unique]
+  - name: facility_dim
+    columns:
+      - name: facility_sk
+        tests: [not_null, unique]
+  - name: payer_dim
+    columns:
+      - name: payer_sk
+        tests: [not_null, unique]
+      - name: payer_class
+        tests:
+          - accepted_values: {arguments: {values: [government, commercial, uninsured]}}
+  - name: encounter_fact
+    columns:
+      - name: eid
+        tests: [not_null, unique, digest_shape]
+      - name: patient_sk
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('patient_dim'), field: patient_sk}}
+      - name: began_day_key
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('calendar_dim'), field: day_key}}
+      - name: payer_sk
+        tests:
+          - relationships: {arguments: {to: ref('payer_dim'), field: payer_sk}}
+      - name: facility_sk
+        tests:
+          - relationships: {arguments: {to: ref('facility_dim'), field: facility_sk}}
+  - name: diagnosis_fact
+    columns:
+      - name: cid
+        tests: [not_null, unique, digest_shape]
+      - name: patient_sk
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('patient_dim'), field: patient_sk}}
+      - name: condition_sk
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('condition_dim'), field: condition_sk}}
+  - name: prescription_fact
+    columns:
+      - name: rxid
+        tests: [not_null, unique, digest_shape]
+      - name: patient_sk
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('patient_dim'), field: patient_sk}}
+      - name: drug_sk
+        tests:
+          - relationships: {arguments: {to: ref('drug_dim'), field: drug_sk}}
+  - name: result_fact
+    columns:
+      - name: oid
+        tests: [not_null, unique, digest_shape]
+      - name: patient_sk
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('patient_dim'), field: patient_sk}}
+  - name: procedure_fact
+    columns:
+      - name: prid
+        tests: [not_null, unique]
+      - name: patient_sk
+        tests: [not_null]
+  - name: vaccination_fact
+    columns:
+      - name: imid
+        tests: [not_null, unique]
+      - name: patient_sk
+        tests: [not_null]
+  - name: chronic_pairs
+    tests: [one_row_per_pair]
+    columns:
+      - name: lift
+        tests: [not_null]
+  - name: diabetes_care_gaps
+    columns:
+      - name: diabetics
+        tests: [not_null]
+  - name: reject_log
+  - name: scrub_ledger
+    columns:
+      - name: table_name
+        tests: [not_null, unique]
+  - name: reidentification_risk

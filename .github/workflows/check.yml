@@ -1,0 +1,43 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CARELAKE_SCRUB_SECRET: ${{ secrets.CARELAKE_SCRUB_SECRET || 'check-only-secret' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: pip install -e ".[dev]"
+      - run: ruff check carelake tests tools
+      - name: Unit tests (schemas, readers, the 18 Safe Harbor classes, the lake, feeds)
+        run: pytest -q
+      - uses: actions/cache@v4
+        with:
+          path: .cache/synthea-with-dependencies.jar
+          key: synthea-v4.0.0-ed43c20a
+      # The gate that matters: a real seeded cohort through every stage, then dbt's tests and the feed check.
+      - name: Every stage on a 35-patient cohort
+        run: |
+          python -m carelake all --size 35 --seed 35 --label check-35 --only --fresh
+          python tools/verify_feeds.py web/feeds/status.json web/feeds/history.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: feeds
+          path: web/feeds/
