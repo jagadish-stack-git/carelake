@@ -1,5 +1,5 @@
 """status.json (this build) and history.json (one point per week), the two
-files the status page and my portfolio board read.
+files the status page reads.
 
 history.json is extended from whatever is currently published, so the series
 survives stateless runners and needs no commits.
@@ -133,7 +133,6 @@ def status(paths: Paths, dbt: dict | None, cohorts: list[str], built_at: datetim
             "not_read": not_read,
             "dbt": dbt or {},
             "lake_bytes": lake_bytes(paths),
-            "portfolio": "https://jagadish-butukuri.vercel.app",
         }
     )
 

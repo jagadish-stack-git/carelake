@@ -1,4 +1,4 @@
-"""Refuse to publish feeds that the page or the portfolio board could not read.
+"""Refuse to publish feeds that the page could not read.
 Usage: verify_feeds.py web/feeds/status.json web/feeds/history.json"""
 
 from __future__ import annotations
