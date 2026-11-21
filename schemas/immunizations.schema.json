@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/immunizations/1",
+  "title": "immunizations",
+  "x-resource": "Immunization",
+  "x-key": "imid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["imid", "pid", "status", "system", "code", "given_at"],
+  "properties": {
+    "imid":     {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":      {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "eid":      {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "status":   {"type": ["string", "null"], "enum": ["completed", "entered-in-error", "not-done", null]},
+    "system":   {"type": ["string", "null"]},
+    "code":     {"type": ["string", "null"]},
+    "label":    {"type": ["string", "null"], "x-free-text": true},
+    "given_at": {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "site":     {"type": ["string", "null"], "x-free-text": true}
+  },
+  "x-rules": [
+    {"check": "past", "field": "given_at"}
+  ]
+}

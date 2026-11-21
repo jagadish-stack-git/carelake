@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/procedures/1",
+  "title": "procedures",
+  "x-resource": "Procedure",
+  "x-key": "prid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prid", "pid", "status", "system", "code", "began"],
+  "properties": {
+    "prid":    {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":     {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "eid":     {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "status":  {"type": ["string", "null"], "enum": ["preparation", "in-progress", "not-done", "on-hold", "stopped", "completed", "entered-in-error", "unknown", null]},
+    "system":  {"type": ["string", "null"]},
+    "code":    {"type": ["string", "null"]},
+    "label":   {"type": ["string", "null"], "x-free-text": true},
+    "began":   {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "ended":   {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "for_cid": {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "site":    {"type": ["string", "null"], "x-free-text": true}
+  },
+  "x-rules": [
+    {"check": "past", "field": "began"},
+    {"check": "ordered", "earlier": "began", "later": "ended"}
+  ]
+}

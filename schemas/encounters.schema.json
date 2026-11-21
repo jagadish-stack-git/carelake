@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/encounters/1",
+  "title": "encounters",
+  "x-resource": "Encounter",
+  "x-key": "eid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eid", "pid", "status", "setting", "began"],
+  "properties": {
+    "eid":           {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":           {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid_label":     {"type": ["string", "null"], "x-phi": "name",      "x-scrub": "drop"},
+    "status":        {"type": ["string", "null"], "enum": ["planned", "arrived", "triaged", "in-progress", "onleave", "finished", "cancelled", "entered-in-error", "unknown", null]},
+    "setting":       {"type": ["string", "null"], "enum": ["AMB", "EMER", "IMP", "ACUTE", "NONAC", "OBSENC", "PRENC", "SS", "VR", "HH", null]},
+    "kind_code":     {"type": ["string", "null"]},
+    "kind":          {"type": ["string", "null"], "x-free-text": true},
+    "began":         {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "ended":         {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "reason_code":   {"type": ["string", "null"]},
+    "reason":        {"type": ["string", "null"], "x-free-text": true},
+    "facility_id":   {"type": ["string", "null"]},
+    "facility":      {"type": ["string", "null"], "x-free-text": true},
+    "clinician_npi": {"type": ["string", "null"]},
+    "clinician":     {"type": ["string", "null"], "x-scrub": "drop"},
+    "site":          {"type": ["string", "null"], "x-free-text": true}
+  },
+  "x-rules": [
+    {"check": "past", "field": "began"},
+    {"check": "ordered", "earlier": "began", "later": "ended"}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/conditions/1",
+  "title": "conditions",
+  "x-resource": "Condition",
+  "x-key": "cid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cid", "pid", "system", "code", "onset"],
+  "properties": {
+    "cid":             {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":             {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "eid":             {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "clinical_status": {"type": ["string", "null"], "enum": ["active", "recurrence", "relapse", "inactive", "remission", "resolved", null]},
+    "verification":    {"type": ["string", "null"], "enum": ["unconfirmed", "provisional", "differential", "confirmed", "refuted", "entered-in-error", null]},
+    "category":        {"type": ["string", "null"]},
+    "system":          {"type": ["string", "null"]},
+    "code":            {"type": ["string", "null"]},
+    "label":           {"type": ["string", "null"], "x-free-text": true},
+    "onset":           {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "abated":          {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "recorded":        {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"}
+  },
+  "x-rules": [
+    {"check": "past", "field": "onset"},
+    {"check": "ordered", "earlier": "onset", "later": "abated"}
+  ]
+}

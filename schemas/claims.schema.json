@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/claims/1",
+  "title": "claims",
+  "x-resource": "Claim",
+  "x-key": "clid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clid", "pid", "status", "kind", "period_from", "payer"],
+  "properties": {
+    "clid":        {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":         {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid_label":   {"type": ["string", "null"], "x-phi": "name",      "x-scrub": "drop"},
+    "eid":         {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "status":      {"type": ["string", "null"], "enum": ["active", "cancelled", "draft", "entered-in-error", null]},
+    "kind":        {"type": ["string", "null"], "enum": ["institutional", "oral", "pharmacy", "professional", "vision", null]},
+    "use":         {"type": ["string", "null"], "enum": ["claim", "preauthorization", "predetermination", null]},
+    "period_from": {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "period_to":   {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "created_at":  {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "facility_id": {"type": ["string", "null"]},
+    "facility":    {"type": ["string", "null"], "x-free-text": true},
+    "payer":       {"type": ["string", "null"], "x-free-text": true},
+    "member_no":   {"type": ["string", "null"], "x-phi": "plan-id",   "x-scrub": "drop"},
+    "amount":      {"type": ["number", "null"], "minimum": 0},
+    "currency":    {"type": ["string", "null"]},
+    "n_diagnoses": {"type": ["integer", "null"], "minimum": 0},
+    "n_items":     {"type": ["integer", "null"], "minimum": 0}
+  },
+  "x-rules": [
+    {"check": "past", "field": "period_from"},
+    {"check": "ordered", "earlier": "period_from", "later": "period_to"}
+  ]
+}

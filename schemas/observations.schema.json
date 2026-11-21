@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "carelake/observations/1",
+  "title": "observations",
+  "x-resource": "Observation",
+  "x-key": "oid",
+  "x-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["oid", "pid", "status", "system", "code", "taken_at"],
+  "properties": {
+    "oid":          {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "parent_oid":   {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "pid":          {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "eid":          {"type": ["string", "null"], "x-phi": "unique-id", "x-scrub": "hash"},
+    "status":       {"type": ["string", "null"], "enum": ["registered", "preliminary", "final", "amended", "corrected", "cancelled", "entered-in-error", "unknown", null]},
+    "category":     {"type": ["string", "null"]},
+    "system":       {"type": ["string", "null"]},
+    "code":         {"type": ["string", "null"]},
+    "label":        {"type": ["string", "null"], "x-free-text": true},
+    "taken_at":     {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "issued_at":    {"type": ["string", "null"], "format": "date-time", "x-phi": "date", "x-scrub": "offset"},
+    "num_value":    {"type": ["number", "null"]},
+    "unit":         {"type": ["string", "null"]},
+    "text_value":   {"type": ["string", "null"], "x-free-text": true},
+    "coded_value":  {"type": ["string", "null"]},
+    "coded_label":  {"type": ["string", "null"], "x-free-text": true},
+    "n_components": {"type": ["integer", "null"], "minimum": 0}
+  },
+  "x-rules": [
+    {"check": "past", "field": "taken_at"},
+    {"check": "any_of", "fields": ["num_value", "text_value", "coded_value"], "unless_positive": "n_components"}
+  ]
+}

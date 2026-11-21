@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carelake"
+version = "0.1.0"
+description = "A FHIR R4 lakehouse on synthetic patients: JSON Schema at the door, Safe Harbor scrubbing before curated, a Kimball model on DuckDB, ADLS Gen2 as the landing zone."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.1,<2",
+    "dbt-core>=1.10,<2",
+    "dbt-duckdb>=1.10,<2",
+    "pyarrow>=17",
+    "jsonschema>=4.20",
+    "azure-storage-file-datalake>=12.20",
+    "azure-identity>=1.17",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+carelake = "carelake.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["carelake*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
